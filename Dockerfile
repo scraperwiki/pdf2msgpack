@@ -36,6 +36,8 @@ RUN cd vendor/git.savannah.gnu.org/r/freetype/freetype2.git/ \
 
 ENV PKG_CONFIG_PATH="/src/vendor/git.savannah.gnu.org/r/freetype/freetype2.git/build/install/lib/pkgconfig:$PKG_CONFIG_PATH"
 ENV LINKFLAGS="-L/src/vendor/git.savannah.gnu.org/r/freetype/freetype2.git/build/install/lib $LINKFLAGS"
+# Required for poppler cmake
+ENV FREETYPE_DIR=/src/vendor/git.savannah.gnu.org/r/freetype/freetype2.git/build/install
 
 
 RUN cd vendor/anongit.freedesktop.org/git/fontconfig \
@@ -72,18 +74,21 @@ ENV LINKFLAGS="-L/src/vendor/github.com/uclouvain/openjpeg/build/install/lib $LI
 
 
 RUN cd vendor/anongit.freedesktop.org/git/poppler/poppler.git \
- && NOCONFIGURE=1 ./autogen.sh \
  && mkdir build && cd build \
- && ../configure \
-      --prefix=$PWD/install \
-      --disable-poppler-glib \
-      --disable-poppler-cpp \
-      --disable-shared \
-      --enable-static \
-      --enable-build-type=release \
-      --enable-xpdf-headers \
-      --enable-libopenjpeg=openjpeg2 \
- && make V=1 \
+ && cmake .. \
+          -DCMAKE_INSTALL_PREFIX=$PWD/install \
+          -DENABLE_GLIB:BOOL=OFF \
+          -DENABLE_CPP:BOOL=OFF \
+          -DENABLE_UTILS:BOOL=OFF \
+          -DBUILD_SHARED_LIBS:BOOL=OFF \
+          -DBUILD_GTK_TESTS:BOOL=OFF \
+          -DBUILD_QT4_TESTS:BOOL=OFF \
+          -DBUILD_QT5_TESTS:BOOL=OFF \
+          -DBUILD_CPP_TESTS:BOOL=OFF \
+          -DENABLE_XPDF_HEADERS:BOOL=ON \
+          -DCMAKE_BUILD_TYPE:STRING=release \
+          -DENABLE_LIBOPENJPEG:STRING=openjpeg2 \
+ && make V=1 -j4 \
  && make install
 
 ENV PKG_CONFIG_PATH="/src/vendor/anongit.freedesktop.org/git/poppler/poppler.git/build/install/lib/pkgconfig:$PKG_CONFIG_PATH"

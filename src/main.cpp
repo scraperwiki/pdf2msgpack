@@ -133,13 +133,11 @@ public:
   }
 };
 
-static std::string fmt(Object *o, UnicodeMap *uMap) {
-  if (!o)
-    return "<nil>";
-  if (!o->isString())
+static std::string fmt(const Object &o, UnicodeMap *uMap) {
+  if (!o.isString())
     return "<not string>";
 
-  auto s = o->getString();
+  auto s = o.getString();
 
   char buf[9];
   Unicode *u;
@@ -216,26 +214,24 @@ void pack_string(GooString *string) {
 }
 
 void dump_meta_xfa(Catalog *catalog, UnicodeMap *uMap) {
-  Object xfa;
-  catalog->getAcroForm()->dictLookup("XFA", &xfa);
+  auto xfa = catalog->getAcroForm()->dictLookup("XFA");
 
   if (xfa.isStream()) {
     pack_stream_content(xfa.getStream());
   } else {
     packer.pack_map(xfa.arrayGetLength() / 2);
     for (int i = 0; i < xfa.arrayGetLength() - 1; i += 2) {
-      Object key, value;
-      xfa.arrayGet(i, &key);
-      xfa.arrayGet(i + 1, &value);
+      const auto key = xfa.arrayGet(i);
+      const auto value = xfa.arrayGet(i + 1);
 
       if (!key.isString() || (!value.isString() && !value.isStream())) {
         packer.pack_uint32(i / 2);
         packer.pack_nil();
         continue;
       }
-      packer.pack(fmt(&key, uMap));
+      packer.pack(fmt(key, uMap));
       if (value.isString()) {
-        packer.pack(fmt(&value, uMap));
+        packer.pack(fmt(value, uMap));
       } else {
         pack_stream_content(value.getStream());
       }
@@ -264,14 +260,12 @@ void dump_document_meta(const std::string filename, PDFDoc *doc,
   Catalog *catalog = doc->getCatalog();
   std::map<std::string, std::string> m;
 
-  Object info;
-  doc->getDocInfo(&info);
+  auto info = doc->getDocInfo();
   if (info.isDict()) {
     auto dict = info.getDict();
 
     for (int i = 0; i < dict->getLength(); i++) {
-      Object o;
-      m[dict->getKey(i)] = fmt(dict->getVal(i, &o), uMap);
+      m[dict->getKey(i)] = fmt(dict->getVal(i), uMap);
     }
   }
 
@@ -512,8 +506,7 @@ BaseStream *open_file(const std::string filename) {
     exit(5);
   }
   Object obj;
-  obj.initNull();
-  return new FileStream(file, 0, gFalse, file->size(), &obj);
+  return new FileStream(file, 0, gFalse, file->size(), Object(objNull));
 }
 
 std::string parse_page_range(std::string value, Options *options) {
