@@ -91,8 +91,8 @@ RUN cd vendor/anongit.freedesktop.org/git/poppler/poppler.git \
  && make V=1 -j4 \
  && make install
 
-ENV PKG_CONFIG_PATH="/src/vendor/anongit.freedesktop.org/git/poppler/poppler.git/build/install/lib/pkgconfig:$PKG_CONFIG_PATH"
-ENV LINKFLAGS="-L/src/vendor/anongit.freedesktop.org/git/poppler/poppler.git/build/install/lib $LINKFLAGS"
+ENV PKG_CONFIG_PATH="/src/vendor/anongit.freedesktop.org/git/poppler/poppler.git/build/install/lib64/pkgconfig:$PKG_CONFIG_PATH"
+ENV LINKFLAGS="-L/src/vendor/anongit.freedesktop.org/git/poppler/poppler.git/build/install/lib64 $LINKFLAGS"
 ENV CXXFLAGS="-I/src/vendor/anongit.freedesktop.org/git/poppler/poppler.git/build/install/include $CXXFLAGS"
 
 
